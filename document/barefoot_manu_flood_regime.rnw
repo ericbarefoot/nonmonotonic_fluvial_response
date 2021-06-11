@@ -1,0 +1,1018 @@
+\documentclass{agujournal2019}
+
+\usepackage{url} %this package should fix any errors with URLs in refs.
+\usepackage{lineno}
+\usepackage[inline]{trackchanges} %for better track changes. finalnew option will compile document with changes incorporated.
+\usepackage{soul}
+\linenumbers
+
+\usepackage[utf8]{inputenc}
+% \usepackage[style=authoryear,isbn=false,url=false,maxcitenames=2,%
+% uniquename=false,uniquelist=false]{biblatex}
+% \addbibresource{flood_regime_experiments.bib}
+% \AtEveryBibitem{\clearfield{note}}
+\usepackage[english]{babel}
+\usepackage{fancyhdr}
+\usepackage{blindtext}
+\usepackage{xfrac}
+\usepackage{siunitx}
+\usepackage{xspace}
+\usepackage[version=4]{mhchem}
+\usepackage{wasysym}
+\usepackage{gensymb}
+\usepackage{xcolor}
+% \usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{tabularx}
+% \usepackage{sidecap}
+% \usepackage{wrapfig}
+\usepackage{float}
+\draftfalse
+
+\begin{document}
+
+\journalname{JGR: Earth Surface}
+
+\graphicspath{{figures/}}
+
+\title{Non-monotonic floodplain responses to changes in flooding intensity}
+\author{Eric Barefoot, Jeff Nittrouer, Kyle Straub}
+\date{\today}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+# set global chunk options
+# opts_chunk$set(fig.path='figures/', fig.align='center', fig.show='hold', echo=FALSE, warning=FALSE, message=FALSE, error = FALSE, results='hide')
+opts_chunk$set(
+  echo=FALSE, include = FALSE
+)
+options(formatR.arrow=TRUE,width=90)
+@
+
+\authors{Eric A. Barefoot\affil{1}, Jeffrey A. Nittrouer\affil{1}, Kyle M. Straub\affil{2}}
+
+
+\affiliation{1}{Department of Earth, Environmental and Planetary Sciences, Rice University, Houston, Texas, USA}
+\affiliation{2}{Department of Earth and Environmental Sciences, Tulane University of Louisiana, New Orleans, Louisiana, USA}
+
+\correspondingauthor{Eric A. Barefoot}{eabarefoot@gmail.com}
+
+
+
+% \maketitle
+
+<<initial_stuff, include=FALSE>>=
+remake_models_bool = FALSE
+recalculate_stats = FALSE
+library(here)
+library(tidyverse)
+
+# if (remake_models_bool)
+# {
+#   source(here('analysis', 'data_io', 'io_toolbox.r'))
+# } else if (recalculate_stats) {
+#   source(here('analysis', 'paleo_geoms', 'test_differences.r'))
+#   source(here('analysis', 'analyzing_reworking', 'test_differences.r'))
+#   source(here('figures', 'src', 'piceance_manuscript_data_plot.r'))
+# }
+# load(here('data','data_summaries', 'paleo_geom.rda'))
+# load(here('data','data_summaries', 'paleo_pres.rda'))
+@
+
+\begin{keypoints}
+\item Flooding intensity controls the relative balance of lateral versus longitudinal sediment dispersal in experimental deltaic floodplains.
+\item An optimum levee-building condition is attained at moderate levels of flooding.
+\end{keypoints}
+
+\begin{abstract}
+Overbank flooding is common along most rivers, and it influences the dispersal of sediment to floodplains.
+While variable discharge is a critical aspect of fluvial landscape evolution, it is typically modeled by simplifying the hydrograph to an equivalent steady discharge: the channel-forming discharge.
+However, for all formulations used to simplify hydrographs many different inputs can produce the same channel-forming discharge.
+Here, we investigate how hydrographs with different flood intensities affect channel mobility, sediment accumulation patterns, and alluvial morphology using a suite of physical experiments where a fan delta grew by dispersing a cohesive sediment mixture into a basin.
+The experiments spanned three levels: no flooding, low-intensity flooding, and high-intensity flooding, while the time-averaged water and sediment discharge was equivalent between all flooding regimes.
+Across this gradient, channel mobility, alluvial morphology and sediment dispersal scaled non-monotonically with flooding intensity, and the data suggest that levee-building feedbacks are the cause.
+We found that flood intensity modulates the relative balance between sediment delivery to channel margins, which nourishes levee growth, and the intensity of overbank flow, which inhibits levee growth.
+When flooding was absent, levees experienced consistent overbank flow and sediment delivery, leading to moderate levee aggradation and sporadic levee breaches.
+In contrast, when low-intensity flooding was imposed, levees experienced enhanced sediment delivery by low-amplitude floods, but only intermittent scouring.
+A further increase in flood intensity generated intense overbank flows that inhibited levee growth altogether.
+These results imply the existence of an optimum levee-building condition, where flooding conditions stabilize channels through levee-building feedbacks.
+\end{abstract}
+
+\section{Introduction}
+
+Rivers experience variable discharge conditions over time, and the hydrograph defines the frequency and magnitude distribution of flow and sediment transport events.
+The integrated history of flow determines channel dimensions and mobility, which directs sediment dispersal and shapes landscape morphology \cite{pickup_conceptual_1979}.
+However, due to the complexity associated with morphodynamic feedbacks, it is common when modeling fluvial channel and landscape development to simplify the hydrograph into a characteristic steady discharge; namely, the channel forming discharge \cite{wolman_magnitude_1960, leopold_hydraulic_1953}.
+
+An issue with this approach is that the methods used to calculate a characteristic discharge do not produce unique solutions: many different types of hydrographs can be summarized to generate the same characteristic value.
+One formulation used by \citeA{blom_equilibrium_2017} exemplifies the strategy.
+\citeA{blom_equilibrium_2017} consider a hydrograph composed of only two flows that transport sediment according to an appropriate sediment transport relation, \cite<e.g.>{engelund_monograph_1967}, a maximum flow~($Q_{max}$) and a minimum flow~($Q_{min}$), and express the equivalent steady sediment discharge~($\bar{Q}$) as:
+\begin{linenomath*}
+\begin{equation}
+\bar{Q} = \alpha Q_{min} + (1 - \alpha) Q_{max},
+\label{eqn:blom_Qdom}
+\end{equation}
+\end{linenomath*}
+where $\alpha$ is the occurrence frequency of $Q_{min}$, and the frequency of $Q_{max}$ is by definition $(1 - \alpha)$.
+In Equation~\ref{eqn:blom_Qdom}, $\alpha$ can be termed a flood \textit{intermittency} \cite{parker_alluvial_1998}, and the difference between $Q_{max}$ and $Q_{min}$ is the flood \textit{magnitude} \cite{latrubesse_tropical_2005}.
+ % as long as $f(Q)$ is monotonic,
+% It can be clearly seen that a given value of $\bar{Q}$ cannot be expressed by a unique flood magnitude, because the intermittency may also vary.
+
+Importantly, this and other approaches are intended to be used to calculate equilibrium sediment transport conditions and other system properties like channel geometry \cite{blom_equilibrium_2017, naito_can_2019}.
+Tuned to capture specific processes and aspects of the morphodynamic system, models using this approach yield insight about these processes, but are difficult to generalize.
+% therefore eschew generalization in favor of mathematical tractability and fundamental insights.
+
+Consequently, predictions for channel geometry and sediment transport can contradict depending on the formulation used to calculate the equivalent constant flow.
+For instance, \citeA{blom_equilibrium_2017} indicate that all else being equal, an increase in flow variability generates an increase in channel width; this supposition is supported by experimental studies and field research \cite{esposito_sediment_2018, eschner_hydrologic_1981}.
+However, recent numerical modeling studies by \citeA{naito_can_2019} found that channel width decreases as flow variability increases, because enhanced floodplain aggradation builds banks that confine flow and narrow the channel.
+This supposition is supported by field observations from sand-bed channels \cite{pizzuto_flow_1986}.
+% Interestingly, however, both \citeA{blom_equilibrium_2017}, (their Figure 5), and \citeA{naito_can_2019}---Figure~\ref{fig:naito}---indicate monotonic relationships between increasing flood variability and the equilibrium depth, width, and slope.
+
+% \begin{figure}[h!]
+% 	\centering
+% 	\includegraphics[width = \textwidth, draft = false]{naito_prediction.pdf}
+% 	\caption[
+% 		Example null model for fluvial system evolution across a gradient of flooding intensity
+% 		% Predictions of fluvial landscape evolution with variable flow from a numerical model by \citeA{naito_can_2019}.
+% 	]{
+% 	  Example model results using the framework in \citeA{naito_can_2019}, showing generally monotonic scaling of (a) bankfull depth, (b) bankfull width, and (c) channel slope across a gradient of $Q_v$.
+%   }
+% 	\label{fig:naito}
+% \end{figure}
+
+In this particular case, the discrepancy appears to arise because each formulation describes sediment exchange between the channel and floodplain differently.
+It is known that in order to faithfully model many floodplain processes, a variable hydrograph is required \cite{lauer_modeling_2008}, yet the appropriate formulation is not clear, as the impact of overbank floods on sediment transport processes at the basin scale remains underconstrained.
+To cast light on this issue, the present study defines a parameter, \textit{flood intensity} ($Q_v$), as the ratio of $Q_{max}$ and $Q_{min}$,
+\begin{linenomath*}
+\begin{equation}
+Q_v = \frac{Q_{max}}{Q_{min}},
+\label{eqn:qv}
+\end{equation}
+\end{linenomath*}
+provided that $\alpha$ changes to maintain a constant $\bar{Q}$.
+By substituting Equation~\ref{eqn:qv} into Equation~\ref{eqn:blom_Qdom}, an expression for $\alpha$ may be derived in terms of $Q_v$, $Q_{min}$, and the chosen constant discharge: $\bar{Q}_c$,
+\begin{linenomath*}
+\begin{equation}
+\alpha = \frac{\frac{\bar{Q}_c}{Q_{min}} - Q_v}{1 - Q_v}.
+\label{eqn:alpha}
+\end{equation}
+\end{linenomath*}
+
+In this way, $Q_v$ describes the variability of flow relative to a baseline, and allows changes in the hydrograph to be separated from adjustments in the equivalent steady flow.
+This is of critical importance because while flow variability is recognized to impact channel mobility and sediment transport, it remains challenging to parse the relative effects of flood magnitude, intermittency, and fluvial response to an equivalent steady flow.
+
+For example, channel mobility scales with both water discharge and sediment supply \cite{bryant_experimental_1995}, but \citeA{esposito_sediment_2018} show similar results with only a change in $Q_v$.
+Bolstering this assertion, numerical modeling presented by \citeA{naito_can_2019} demonstrates the importance of flood intensity on bank erosion.
+Experiments also show that flow variability is coupled to overbank erosion and chute cut-offs \cite{van_de_lageweg_morphological_2013}, in addition to levee building and in-channel sediment aggradation \cite{esposito_sediment_2018}, all of which play critical roles in the channel avulsion process \cite{mohrig_interpreting_2000}.
+Modern systems characterized by highly seasonal discharge exemplify this feedback, where both lateral migration and avulsion frequency are enhanced relative to rivers with muted hydrographs \cite{leier_mountains_2005, fielding_role_2018}.
+Meanwhile, an increase in flood intermittency can suppress channel mobility because of sediment reworking during low-flow conditions that entrench channels \cite{miller_laboratory_2019}
+
+This study quantifies floodplain morphodynamic feedbacks across a gradient of flooding intensity ($Q_v$).
+By using $Q_v$ as the independent variable, we separate changes in flow variability from changes in equivalent steady discharge, and characterize the main ways in which variable flow influences channel mobility, sediment dispersal, and alluvial morphology in an experimental fan delta.
+
+\section{Methods}
+
+\subsection{Experimental design}
+\label{section:experimental_design}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{basin_diagram.png}
+	\caption[
+		Diagram of experimental apparatus
+	]{
+		The Tulane University Delta Basin measures $4.2 \times 2.8 \times 0.6$ m.
+		Water and sediment are fed from a funnel and pipe system, where the pump for water and feed rate of sediment are controlled on a 30-second basis from a central computer.
+		Water and sediment exit the inlet channel and form a delta in the corner of the basin, that can therefore spread over a 90° swath of the basin.
+		Channels form on the delta topset and direct water and sediment to the shoreline.
+		Water level is controlled via a computer-operated weir (not shown) that is hydraulically connected to the drain on the floor of the basin.
+		By moving the weir vertically, the water level can be controlled with sub-millimeter precision.
+  }
+	\label{fig:basin_diagram}
+\end{figure}
+
+% This study tests the hypothesis that changes in flooding intensity will drive interactions between channelized flow and overbank flow, inducing channel-floodplain feedbacks.
+A suite of physical experiments were conducted in the Tulane University Delta Basin where fan deltas evolved in response to three discrete flooding regimes: no flooding ($Q_v = 1$), low-intensity flooding ($Q_v = 1.5$), and high-intensity flooding ($Q_v = 3$).
+% For each of these three conditions, the surface expression and dynamics of the alluvial system were observed, and the impact of hydrologic regime on sediment transport processes was recorded.
+% Sediment and water are mixed and fed into the basin from the northwest corner (Figure~\ref{fig:diagram}), forming a delta that can spread radially up to 90°.
+The basin has dimensions of $4.2 \times 2.8 \times 0.6$ m, and sediment and water were mixed and fed into the basin from an inlet channel, forming a fan delta that spread radially up to 90° (See Figure~\ref{fig:basin_diagram}).
+The feed rate of sediment and water at the apex is set by a computer-controlled commercial feeder and pump, respectively, and water drains from the delta basin via a computer-controlled weir that maintains basin water level with sub-millimeter precision.
+The experiments featured long-term aggradation, which was induced by steadily raising the water level throughout the experiment.
+The water-level-rise rate is calibrated to generate accommodation equal to the long-term sediment-feed rate, so that the average radial shoreline was dynamically stable through time \cite{straub_influence_2015}.
+The sediment used in this experiment was a bimodal mixture of coarse sand, fine sand, and silica flour, with additives that impart cohesion.
+% Red-stained coarse sand is added as a visual tracer for coarse material, and other additives like bentonite and dissolved polymer impart cohesion.
+This mixture enhances channelization compared to cohesionless mixtures, generating rich channel-floodplain interactions and delta lobe-switching via avulsions \cite{hoyal_morphodynamic_2009}.
+
+<<gradient_run_parameters, include=FALSE, cache=TRUE>>=
+T1 = 1
+T2 = 1
+T3 = 0.5
+T4 = 0.5
+T5 = 0.25
+T6 = 0.25
+T7 = 0.1
+cycleT = 30 * 60 # (seconds)
+Qcon = 1.72e-4 * 1000 # L/s
+# 10.32 / 60 / 1000 * 15850.3 # gal / min
+kFactor = 0.825
+Qbase = Qcon * kFactor # 82.5% of constant flow equivalent
+hifact = 3
+lofact = 1.5
+hipeak = hifact * Qbase  # hi peak is 3x base flow
+lopeak = lofact * Qbase  # low peak is 1.5x base flow
+Csed =  3.1 / (Qcon * 60 * 60) # l/s -> lb/min
+SLR = 0.25 # mm/hr
+
+tconv = 3600
+
+Tc = 50 * tconv # (seconds)
+Ttrans = 1 * Tc
+cyclesTrans = Ttrans / cycleT
+cyclesTc = Tc / cycleT
+
+QpeakLow = round(lofact * Qbase, 3)
+QpeakHigh = round(hifact * Qbase, 3)
+Qbaseflow = round(Qbase, 3)
+Qconstant = round(Qcon, 3)
+Csed_round = 0.001 # change to be dimensionless volumetric concentration
+@
+
+\begin{table}[h!]
+	% \begin{singlespace}
+	\centering
+	\caption[
+		Delta Basin run parameters---gradient of flooding intensity
+	]{
+		Control parameters for Tulane University Delta Basin for experiment spanning three levels of a gradient of $Q_v$.
+		*Estimated from \citeA{li_storage_2016}.
+	}
+	{\small
+	\begin{tabularx}{\textwidth}{lXXX}
+			& No Flooding & Low-intensity & High-Intensity \\
+	\hline\hline
+	Flood Intensity ($Q_v$, ---) & 1.0 & 1.5 & 3.0 \\
+	% Avg. sediment feed rate (\sfrac{lb}{hr}) & 3.1 & 3.1 & 3.1 \\
+	% Avg. water feed rate (\sfrac{gal}{hr}) & 3.1 & 3.1 & 3.1 \\
+	Flood discharge (L/s) & \Sexpr{Qconstant}  & \Sexpr{QpeakLow}  & \Sexpr{QpeakHigh}  \\
+	Baseline discharge (L/s)             & \Sexpr{Qconstant} & \Sexpr{Qbaseflow} & \Sexpr{Qbaseflow} \\
+	Equivalent constant discharge (L/s)  & \Sexpr{Qconstant} & \Sexpr{Qconstant} & \Sexpr{Qconstant} \\
+	Sediment concentration ($Q_s$/$Q_w$) & \Sexpr{Csed_round} & \Sexpr{Csed_round} & \Sexpr{Csed_round} \\
+	Basin water level rise rate (mm/hr)  & 0.25 & 0.25 & 0.25 \\
+	Flood cycle time ($T_f$, min)        & \Sexpr{cycleT/60} & \Sexpr{cycleT/60} & \Sexpr{cycleT/60} \\
+	Compensation time scale ($T_c$, hrs)* & 50 & 50 & 50 \\
+	Total run time (hrs) & 100 & 100 & 100 \\
+	\hline
+	\end{tabularx}
+	}
+	\label{tab:run_params_nonmonotonic}
+% \end{singlespace}
+\end{table}
+
+Over the duration of the experiment, the sediment mixture, rate of basin water-level rise, and the time-averaged sediment and water flux, were all held constant (Table~\ref{tab:run_params_nonmonotonic}).
+In field scale systems, the water-to-sediment ratio transported in rivers is not constant with variable flow \cite{nittrouer_bedform_2008}.
+However, we chose to hold the water-to-sediment ratio constant similarly to other experiment \cite{esposito_sediment_2018}, since the sediment concentration-discharge scaling differs between field systems, and it is not well understood what controls this scaling.
+In this way, choosing a constant ratio simplifies the analysis, and provides a baseline for future studies with other concentration-discharge relations, which are beyond the scope of this study.
+% We operationally defined flood intensity ($Q_v$) as the ratio between the maximum flood discharge ($Q_{maximum}$) to the minimum discharge ($Q_{min}$).
+% To generate variable hydrographs, flood pulses were constructed as a Gaussian function of time, where the sharpness of the peak was varied to maintain a consistent equivalent time-averaged discharge for each of the three experiments .
+Floods were designed as a Gaussian function of time (Equation~\ref{eqn:flow_curve}).
+This permitted the intermittency and magnitude of floods to smoothly covary while maintaining a constant integrated discharge over every flood cycle despite changes in amplitude.
+In this way, the effect of hydrograph variability was separated from changes in overall water and sediment flux.
+Discharge over every flood cycle was thus defined in reference to an equivalent constant discharge ($\bar{Q}_c$), and $Q_{min}$ was defined as a fraction of $\bar{Q}_c$, such that $Q_{min} = k\bar{Q}_c$.
+In this way, over a flood cycle of duration $T_{f}$, discharge is given as:
+\begin{linenomath*}
+\begin{equation}
+	Q(t) = k\bar{Q}_c \left ( 1 + (Q_v - 1) e ^ {- \left ( \frac{k \sqrt{\pi} (Q_v - 1)}{(k-1)T_f} t \right )^2} \right )
+	\label{eqn:flow_curve}
+\end{equation}
+\end{linenomath*}
+on the closed domain $[-T_{f} / 2, +T_{f} / 2]$.
+For this experiment, $k = \Sexpr{kFactor}$ and $T_f = \Sexpr{cycleT/60}~\textrm{minutes}$, where sediment and water were specified every 30 seconds, yielding an experimental hydrograph (see Figure~\ref{fig:flood_pulses}).
+
+% We imposed a condition such that the average sediment and water discharge over a flood cycle was equal for all three treatments.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{flood_pulse_demo.pdf}
+	\caption[
+		Flood pulse design
+	]{
+	  Flood pulse design for experimental runs computed using Equation~\ref{eqn:flow_curve}.
+	  From left to right, these flood pulses exemplify flooding intensity for $Q_v = 1.0$, $Q_v = 1.5$, and $Q_v = 3.0$.
+		The baseflow discharge ($Q_{min}$) is \Sexpr{kFactor * 100}\% of the equivalent constant discharge ($\bar{Q}_c$).
+  }
+	\label{fig:flood_pulses}
+\end{figure}
+
+A flood interval of 30 minutes is chosen because it is frequent relative to autogenic cycles of sediment storage and release \cite{kim_shoreline_2006}, ensuring that sedimentary dynamics were not impacted by individual flood events, but rather influenced by flooding as a background condition \cite{miller_laboratory_2019}.
+% danillervarghese_effect_2020
+Since the primary depositional process occurring in this experimental apparatus is the successive emplacement of delta lobes, the appropriate autogenic timescale for this comparison is the \textit{compensation timescale}, ($T_c$), defined as the ratio of the characteristic topographic relief ($l$) to the long-term aggradation rate ($r$) \cite{wang_scale-dependent_2011}, that is:
+\begin{linenomath*}
+\begin{equation}
+	T_c = \frac{l}{r},
+	\label{eqn:Tc_eqn}
+\end{equation}
+\end{linenomath*}
+Over a duration of time $T_c$, depositional lobes stack such that sediment is spread evenly over the delta topset.
+In this experimental apparatus, $T_c \approx 50~\textrm{hours}$ \cite{li_storage_2016}, and given the flood cycle duration, $\sim 100$ floods occurred for each $T_c$.
+Each experimental dataset comprises a 100 hour episode of experimental run time, equivalent to $\sim 2 \times T_c$.
+This ensures that sufficient time elapsed to characterize the dynamic equilibrium of the delta, and that measured quantities were statistically stationary.
+
+It is not clear, \textit{a priori}, how floods in sedimentary experiments should be scaled to best compare with field systems.
+\citeA{esposito_sediment_2018} demonstrated that floods act to change river dynamics by changing mobility and sediment exchange between the channel and the floodplain.
+The largest floods in this experiment match those used by \citeA{esposito_sediment_2018}, which were planned to approximate $Q_v$ in large river systems like the Mississippi.
+However, when $Q_v = 3$, the dynamics and morphology of those experimental deltas more strongly resembled the dynamics of braided rivers than sinuous lowland rivers.
+In fact, unpublished trials conducted prior to \citeA{esposito_sediment_2018} indicate that flooding more intense than $Q_v = 3$ in this apparatus substantially retards channel development.
+Thus, $Q_v = 3$ may be the maximum flood intensity allowed in this apparatus, but in natural river channels, $Q_v$ can often be much larger than three \cite{plink-bjorklund_morphodynamics_2015}.
+
+In field scale systems, there exist myriad processes that influence sediment exchange and channel mobility, including vegetation \cite{parker_new_2011} and floodplain hydrology \cite{mertes_rates_1994}, among others.
+Finding a direct process-similarity between these experiments and the field is likely not advisable.
+Rather, a particular value of $Q_v$ should be considered in the context of the processes that dominate sediment exchange between channels and overbank environments.
+Using this framework, these experiments are designed to represent the response of the delta system across the maximum range of $Q_v$ values that preserve channel formation for a given system, and capturing intermediate levels.
+
+% Instead, throughout, the focus will be on comparing the broad self-organized patterns of sediment dispersal, agnostic of process.
+
+
+% The key autogenic transport events in this experimental setup are channel backstepping events, whose characteristic timescale can be estimated as the volume of the median channel divided by the sediment supply rate.
+% The compensation timescale ($T_c$) to evenly disperse sediment can be approximated as the time necessary to aggrade the delta system by one channel depth, and has been been calculated from previous experiments to be $\sim$50 hours \cite{li_storage_2016}.
+% In all experiments, floods were timed to occur twice every hour, such that over every compensation timescale, 100 floods occurred.
+
+\subsection{Data collected}\label{section:data_collected_non_monotonic}
+
+Two main types of data were collected from these experiments to constrain channel mobility, sediment dispersal, and fluvial morphology.
+
+For every hour of runtime, topographic data were collected using a terrestrial lidar scanner.
+The 3D point-cloud data were then gridded at a horizontal resolution of $5 \times 5$~mm with a vertical resolution of 1~mm.
+Rarely, a topographic scan failed ($\sim$0.2\% of all scans), and since some analysis of scan data can be biased by gaps in the record, the missing data was interpolated on a pixel-by-pixel basis using the closest complete scans before and after.
+Topographic scans were then clipped to the basin water level, and used to generate masks of the delta topset and identify the shoreline.
+Sequential scans were then post-processed to generate synthetic stratigraphy, where each topographic surface was clipped to reflect subsequent erosion such that only preserved depositional surfaces remained \cite{strong_valleys_2008}.
+
+Throughout the experiment, overhead images were collected every 15 minutes to capture each flood peak and trough, then corrected for lens distortion using Agisoft Metashape.
+Images also occasionally failed to capture ($\sim$0.1\% of all images), and the missing data were discarded.
+For analysis, images were projected into the reference frame for topographic scans, and resampled to $5 \times 5$~mm pixel resolution.
+The area comprising basin water was then clipped in every image using the topographically-derived topset mask, with the remainder analyzed to identify channel locations.
+Blue dye was injected into the water for every overhead image, so channels were manually mapped to create one channel mask for every hour of runtime to generate a dataset of 300 masks (100 for each experiment; Figure~\ref{fig:mask_process}).
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width = 4in, draft = false]{channel_mask_procedure.pdf}
+	\caption[
+		Channel mask construction method
+	]{
+		Channels were manually mapped to generate channel masks for each run hour of the experiment.
+  }
+	\label{fig:mask_process}
+\end{figure}
+
+Additionally, in every run hour, levee breaches were located and counted from overhead imagery.
+Levee breaches were identified in overhead images as locations on the channel banks where water escaped the channel during low flow.
+In this way, the count estimate reflects locations of potential failure during subsequent floods, rather than locations of overbank flow during floods.
+
+At the end of the experimental run, the deposit was drained and dried, then cut along four strike sections.
+Each of these cuts was imaged and georeferenced to the basin, generating orthophotos of the face.
+Facies were interpreted in the cuts based on deposit geometries revealed by corresponding synthetic stratigraphy sections.
+Samples were taken from several locations in each cut, chosen to capture major facies.
+Grain-size distributions for these samples were generated using a laser particle size analyzer.
+
+\subsection{Channel mobility}\label{section:channel_mobility_method}
+
+As channels migrate laterally and avulse, the area occupied by channels decorrelates from its initial state as a function of time because channels visit new locations on the floodplain.
+Using channel mask data, correlation is described in terms of pixels, where the more pixels that change from ``wet'' to ``dry'', the less two channel images overlap \cite{wickert_river_2013}.
+Thus, the normalized channel overlap between any pair of images, $O_\Phi$ is given as:
+\begin{linenomath*}
+\begin{equation}
+O_\Phi = 1 - \frac{D}{A\Phi},
+\label{eqn:norm_overlap}
+\end{equation}
+\end{linenomath*}
+where $D$ is the number of pixels that changed, $A$ is the total number of pixels in the image, and $\Phi$ is a dimensionless parameter that gives the number of pixels that would be expected to change by randomly scattering wet and dry pixels across the surface \cite{wickert_river_2013}.
+Between two images, 1 and 2, $\Phi$ is expressed as:
+\begin{linenomath*}
+\begin{equation}
+\Phi = (w_1 d_2 + w_2 d_1),
+\label{eqn:phiscatter}
+\end{equation}
+\end{linenomath*}
+where $w_x$ and $d_x$ are the fraction of wet and dry pixels in images 1 or 2.
+Theory dictates that channels will decorrelate according to an exponential decay function of the lag time between successive channel maps \cite{wickert_river_2013}:
+\begin{linenomath*}
+\begin{equation}
+O_\Phi = (a_M - p_M) e^{-Mt} + p_M,
+\label{eqn:overlap_decay}
+\end{equation}
+\end{linenomath*}
+where $O_\Phi$ is the normalized channel mask overlap, $t$ is the lag time between masks, and $p_M$, $a_M$ and $M$ are constants.
+To quantify channel mobility using this method, the normalized overlap between successive channel masks was measured for each experiment, and an exponential model was fit for each dataset using Equation~\ref{eqn:overlap_decay} by restricted maximum likelihood \cite{venables_modern_2002}.
+The mobility of channels is interpreted using the reciprocal of the exponential decay constant ($1/M$), i.e. an $e$-folding time.
+Higher $e$-folding times imply immobile channels that decorrelate slowly, because channels remain in the same location over long lag times, whereas small $e$-folding times imply mobile channels.
+
+\subsection{Sediment dispersal}\label{section:sadler_exponent}
+
+To evaluate the spatial heterogeneity of sediment dispersal and patterns of deposition in the fluvio-deltaic system, four approaches are employed.
+In the first, the spatial variation of sediment deposition was qualitatively assessed using isopach maps and circular sections constructed from synthetic stratigraphy.
+Spatial patterns of deposition are revealed by comparing isopach maps for equivalent intervals of each experiment, and circular sections highlight lateral variation in sediment thickness.
+
+The second method quantifies the evenness of lateral sediment dispersal by measuring the completeness of stratigraphic columns as a function of discretization time, that is, the precision of timing that is desired for interpretation.
+Since episodes of deposition are interspersed with hiatuses in the stratigraphic record, the history of accumulation in any given location is incomplete.
+Stratigraphic completeness is commonly defined as:
+\begin{linenomath*}
+\begin{equation}
+f_c \equiv \frac{n \delta t}{\hat t},
+\label{eqn:completeness_def}
+\end{equation}
+\end{linenomath*}
+where $\delta t$ is the discretization time, that is, how finely the stratigraphic record is divided.
+$n$ is the number of time intervals represented by sediment, and $\hat t$ is the total time encompassed by the stratigraphic column \cite{straub_buffered_2020}.
+Importantly, if the stratigraphic record is finely divided into small units of time ($\delta t$), the number of time intervals represented by sediment ($n$), goes down.
+This is an expression of the Sadler effect, and the completeness ($f_c$) grows as a power-law function of the discretization time:
+\begin{linenomath*}
+\begin{equation}
+f_c = \left ( \frac{\delta t}{\hat t} \right )^{\beta}
+\label{eqn:f_scaling}
+\end{equation}
+\end{linenomath*}
+The exponent $\beta$, which is $-1 \times$ the Sadler exponent, takes on values between zero and one, and has physical meaning; it scales with the spatial uniformity of sediment deposition \cite{sadler_sediment_1981, jerolmack_transience_2018}.
+
+
+% \citeA{sadler_sediment_1981} defines completeness in a different sense, casting it as the ratio of accumulation rates, that is:
+% \begin{equation}
+% f_{sadler} \equiv \frac{\dot{z}}{\dot{z}_*},
+% \label{eqn:completeness_def_sadler}
+% \end{equation}
+% where $\dot{z}$ is the perceived accumulation rate and $\dot{z}_*$ is the true average accumulation rate.
+% If $\hat z$ is the full thickness of the stratigraphic column then $\dot{z} = \sfrac{\hat z}{t^\star}$ and $\dot{z}_* = \sfrac{\hat z}{\hat t}$.
+% \citeA{sadler_sediment_1981} noted that the perceived accumulation rate decreases with the averaging window ($\delta t$) as a power law function.
+% \begin{equation}
+% \frac{\dot{z}}{\dot{z}_*} = \left ( \frac{\delta t}{\hat t} \right )^\beta
+% \label{eqn:sadler_effect}
+% \end{equation}
+
+
+
+% When using experimental data, however, it is more convenient to measure completeness via Equation~\ref{eqn:completeness_def}.
+% It can be shown that $f_{sadler}$ is related to $f_c$ as follows.
+% \begin{equation}
+% f_{sadler} = \frac{\dot{z}}{\dot{z}_*} = \frac{\sfrac{\hat z}{t^\star}}{\sfrac{\hat z}{\hat t}} = \frac{\hat t}{t^\star} = \frac{1}{f_c}
+% \label{eqn:sadler_completeness_relation}
+% \end{equation}
+% Therefore, it is clear that $f_c$ is related to the averaging time window as follows.
+% \begin{equation}
+% f_c = \left ( \frac{\delta t}{\hat t} \right )^{-\beta}
+% \label{eqn:f_scaling}
+% \end{equation}
+
+% $\beta$ takes on values between 1 and 0, this is a convex-up power law function that, importantly,
+
+Completeness naturally has a restricted range from 0 to 1.
+The stratigraphic record can be at minimum 0\% complete, and above a critical averaging timescale, the stratigraphic record will essentially always represent some deposition, so the relationship will saturate at $f_c = 1$.
+However, in between these bounds, the data are well-described by a power-law.
+For these experiments, the critical timescale is the compensation timescale ($T_c$), because it is at that discretization time that one expects to see delta lobes evenly spread across the topset.
+In this way, using stratigraphic columns extracted from circular sections of the experimental data, $f_c$ was calculated for each column across a range of $\delta t$ values.
+These data were then fit with Equation~\ref{eqn:f_scaling} using Markov Chain Monte-Carlo (MCMC) sampling methods, and the posterior distributions of $\beta$ were interpreted.
+% In general, $\beta$ scales with sediment evenness, with higher values indicating less even deposition, and low absolute values indicating more even deposition.
+
+The third method for characterizing spatial patterns of sediment deposition measures the abundance of channel deposits in the strata.
+High channel mobility and even sedimentation will increase the amount of channel deposits, whereas low channel mobility will spatially restrict channel deposits, resulting in overall lower representation in the stratigraphy \cite{leeder_quantitative_1977, chamberlin_interpreting_2015}.
+Synthetic stratigraphy was used to sub-sample channel-mask data and produce a dataset showing the abundance of channel deposits throughout the stratigraphic volume.
+The relative abundance of channels in each experiment was then quantified as the fraction of the deposit in different stratigraphic cuts that was channel or floodplain.
+
+Finally, we qualitatively assessed spatial grain-size fractionation in the stratigraphy using images of the physical stratigraphic strike sections.
+In the experiment, red sand was added as a tracer for the coarse sediment fraction, so an abundance of red sediment in the deposit is indicative of coarse deposition, whereas white sediment is indicative of fine deposition.
+Coarse and fine fractions were mapped for each experimental inverval in both a proximal and distal section.
+
+\subsection{Delta-floodplain morphology} \label{section:relief_different_qv}
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{channel_geom_procedure.pdf}
+	\caption[
+	Method for extracting channel geometries from topographic data
+	]{
+	In order to extract channel dimensions from coupled topography and overhead imagery data, images were georeferenced to the topography.
+	Circular sections were taken, and changes from ``dry'' to ``wet'' (0 to 1) were identified, which defined the left and right bank of the channel.
+	The channel width was taken as the distance between the points, and a line of pixels between the corresponding points were extracted from the topography, and the total relief was taken as the channel depth.
+	Channel slope was measured by extracting all topographic points where the channel mask was ``wet'' and a least-squares fit was applied to the elevation as a function of radius from the apex.
+	}
+	\label{fig:geom_process}
+\end{figure}
+
+To document changes in channel morphology throughout each experiment, average estimates of channel width, depth, and slope were produced for each experiment.
+To measure channel geometries, circular sections were taken across each channel mask at designated radii, and channel banks were identified as points where the edges of channels intersected the section.
+Channel width was then measured as the distance across the channel between points on the banklines, and topographic data was extracted along this transect.
+Channel depth was measured as the total topographic relief along this channel transect (see Figure~\ref{fig:geom_process}).
+Channel slope was estimated by extracting topography within each channel mask, and fitting a linear regression to the topography data along radial transects from apex to shoreline.
+
+Changes in floodplain and deltaic morphologies, including the average delta topset slope and topographic relief were also documented.
+Delta topset slopes were calculated by extracting average radial topographic profiles from the delta apex to the shoreline.
+Floodplain relief was estimated by detrending the delta topset using the calculated slopes and computing the vertical distance from the 25$^{th}$ percentile to the 95$^{th}$ percentile of the detrended elevation data (see Figure~\ref{fig:detrend_process}).
+
+The shoreline was defined as the line where the topographic data intersected the water surface elevation in the basin.
+Shoreline rugosity ($R$) was computed as the coefficient of variation in radial distance between every point on the shoreline and the delta apex:
+\begin{linenomath*}
+\begin{equation}
+R_j = \sqrt{\frac{1}{N}\sum_{i = 1}^{N}\left(\frac{r_{i,j} - \bar r_j}{\bar r_j}\right)^2},
+\label{eqn:rugosity}
+\end{equation}
+\end{linenomath*}
+where $R_j$ is the rugosity of the shoreline at time $j$, $r_{i,j}$ is the distance from the apex to all points $i$ that define the shoreline in image $j$. $\bar r_j$ is the mean distance from the delta apex to the shoreline in image $j$, and $N$ is the total number of spatial points that define the shoreline.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{detrending_procedure.pdf}
+	\caption[
+	Extracting floodplain relief using detrended topography
+	]{
+	% Surface roughness is a key control on the ability of channels to migrate laterally, and can be characterized by surface relief on the delta topset.
+	% However, because this apparatus produces a fan delta, the shape of the surface is generally conical, and the topographic relief is dominated by the relief from the apex to the shoreline, and does not well characterize the roughness.
+	To remove the overall conical trend and estimate the surface roughness of the topset, each topographic surface was vertically displaced to be centered on zero (Scaled Topography), and radial transects were taken from the apex to shoreline, and all pixels along the transect were detrended by the slope of the transect (Detrended Topography).
+	% By taking transects at many angles, a new map of surface roughness is created .
+	Histograms of the elevation images are shown before and after, demonstrating that this procedure removes the long-wavelength topography and retains roughness features like levees.
+	The roughness was taken as the distance from the 25$^{th}$ to 95$^{th}$ percentiles of the detrended histogram.
+	}
+	\label{fig:detrend_process}
+\end{figure}
+
+\section{Results}
+
+\subsection{Channel mobility} \label{section:channel_mobility_qv}
+
+<<estimate_channel_overlap, cache=TRUE>>=
+source(here('analysis', 'chapter_2', 'figures', 'src', 'channel_overlap.r'))
+qv_10_efolding = overlap_decay_summary$eFoldingT[1] %>% signif(digits = 3)
+qv_15_efolding = overlap_decay_summary$eFoldingT[2] %>% signif(digits = 3)
+qv_30_efolding = overlap_decay_summary$eFoldingT[3] %>% signif(digits = 3)
+delta_10_15 = (
+	100 * ((qv_15_efolding - qv_10_efolding) / qv_10_efolding)) %>%
+	signif(digits = 3)
+delta_10_30 = (
+	100 * ((qv_10_efolding - qv_30_efolding) / qv_10_efolding)) %>%
+	signif(digits = 3)
+qv_10_efolding_std = ((overlap_decay_summary$eFoldingTupr[1] - overlap_decay_summary$eFoldingTlwr[1]) / 2) %>% signif(digits = 3)
+qv_15_efolding_std = ((overlap_decay_summary$eFoldingTupr[2] - overlap_decay_summary$eFoldingTlwr[2]) / 2) %>% signif(digits = 3)
+qv_30_efolding_std = ((overlap_decay_summary$eFoldingTupr[3] - overlap_decay_summary$eFoldingTlwr[3]) / 2) %>% signif(digits = 3)
+@
+
+Estimates of the $e$-folding time for channel overlap decay (Equation~\ref{eqn:overlap_decay}) indicate that channel mobility scaled non-monotonically with flooding intensity.
+In the no-flooding experiment, the channel overlap $e$-folding time was \Sexpr{qv_10_efolding} hours.
+When low-intensity flooding was imposed, the $e$-folding time increased to \Sexpr{qv_15_efolding} hours, an increase of $\sim$\Sexpr{delta_10_15}\%.
+However, when flood intensity increased to $Q_v = 3$, the $e$-folding time decreased to \Sexpr{qv_30_efolding} hours, a decrease of $\sim$\Sexpr{delta_10_30}\% from no-flooding.
+In terms of $T_c$, the $e$-folding time for no flooding is
+ $\Sexpr{qv_10_efolding * 2}\%~T_c$, compared to
+ $\Sexpr{qv_15_efolding * 2}\%~T_c$ for low-intensity flooding and
+ $\Sexpr{qv_30_efolding * 2}\%~T_c$ for high-intensity flooding (see Table~\ref{tab:nonmonotonic_results_summary} and Figure~\ref{fig:efolding}).
+
+\subsection{Sediment dispersal}
+
+Channel and floodplain morphodynamics impact sediment dispersal in the fluvial system, which manifests as the spatial unevenness of sediment deposits.
+Isopach maps prepared for each flooding regime demonstrate that sedimentation is evenly distributed across the delta topset in the high-intensity flooding experiment, highly localized when $Q_v = 1.5$, and intermediate when no flooding is present (Figure~\ref{fig:package_evenness}).
+In particular, isopach maps show that when low-intensity flooding is imposed, deposition is localized along alluvial ridges, generating clearly visible levee deposits (Figure~\ref{fig:package_evenness}, panel b).
+Meanwhile, deposition is also focused at the channel mouth, where the delta builds elongate lobes.
+Synthetic stratigraphic sections corroborate this observation, where thin lateral deposition adjacent to the floodplain is contrasted with thick levee deposits in proximal sections, but additional lobe deposition can be seen in the most distal cut.
+
+\begin{figure}[ht!]
+\includegraphics[width = 2.5in, draft = false]{channel_overlap_decay.pdf}
+\caption[
+ Estimates of normalized channel overlap decay
+]{
+ Panels a, b, and c show the decay of normalized channel overlap with successive lag times.
+ The shaded regions show the distribution of the data, with the lightest band showing the 1st to 99th percentiles, the middle band showing the 10th to 90th percentiles, and the darkest showing the 25th to 75th percentiles.
+ The red lines show model fits using Equation~\ref{eqn:overlap_decay}.
+ Panel (d) shows estimates of the $e$-folding time ($1/M$, in $T_c$) along with 95\% confidence intervals.
+ It is noted that the channel overlap decay $e$-folding times scale non-monotonically with $Q_v$.
+}
+\label{fig:efolding}
+\end{figure}
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{strat_evenness.pdf}
+	\caption[
+	Isopach maps and stratigraphic cuts for each level of flooding intensity
+	]{
+	Sediment isopach maps for a sample 35 hour interval across three values of $Q_v$.
+	Dark colors indicate thicker deposition, and the shoreline is outlined for clarity.
+	% From left to right, flooding intensity values are $Q_v = 1.0$, $Q_v = 1.5$, and $Q_v = 3.0$.
+	Circular sections shown in red are displayed below, where the same 35 hour interval is highlighted in red, whereas the deposit for the full 100 hours of runtime is shown in gray.
+	Note that sediment thickness is variable over the illustrated interval when $Q_v = 1$ because the active delta lobe switches from one side of the delta to the other during the episode.
+	Sediment thickness is more variable when $Q_v = 1.5$, because levees that can be seen aggrading on either flank of the channel confine flow and prevent it from being distributed laterally.
+	In contrast, the sediment packages deposited when $Q_v = 3$, are less variable in thickness.
+	% $Q_v = 1.0$, $Q_v = 1.5$, and $Q_v = 3.0$
+	}
+	\label{fig:package_evenness}
+\end{figure}
+
+When flooding intensity is high ($Q_v = 3$), sediment is deposited evenly across the floodplain of the delta, indicated by consistent thickness in the isopach map.
+Consistent thickness of coeval deposits in proximal as well as distal stratigraphic sections also demonstrates relatively uniform deposition.
+When no flooding is present, ($Q_v = 1$), sediment deposition is focused in delta lobes, but not to the same degree as during low-intensity flooding.
+In fact, lateral sediment dispersal can clearly be seen in stratigraphic sections as well as the isopach maps in Figure~\ref{fig:package_evenness}a.
+
+Channel abundance estimates (Figure~\ref{fig:chan_abundance}) show that the abundance of channels in the stratigraphic record scales non-monotonically with flooding intensity.
+When low-intensity flooding was imposed, channel deposits comprise a minor portion of the delta stratigraphy.
+In contrast, the concentration of channels in the stratigraphy increases with high-intensity flooding.
+When no flooding is imposed, the concentration of channels in the delta stratigraphy is intermediate, comprising a smaller proportion of the deposit than a high-intensity flooding delta, but more than a low-intensity flooding delta.
+
+Grain size samples taken from channelized and floodplain sediments for each experimental stage show that channelized deposits are, on average, coarser than floodplain sediments (Figure~\ref{fig:grain_size_differences}a and~\ref{fig:grain_size_differences}b).
+Channel deposits are also relatively coarse compared to the input mixture (shown in black), whereas the floodplain deposits are relatively fine.
+Additionally, channel abundance consistently decreases as a function of radial distance from the delta apex (Figure~\ref{fig:grain_size_differences} (d), (e), and (f)), indicating that proximal deposits consist of a larger fraction of coarse sediment than distal deposits, on average.
+% It can also be seen that high-intensity flooding is associated with higher proportions of channel deposits than either no flooding or low-intensity flooding, and that low-intensity flooding is associated with the lowest channel abundance.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{channel_abundance.pdf}
+	\caption[
+		Channel abundance maps and stratigraphic sections for each level of flooding intensity
+	]{
+	  Channel abundance maps and stratigraphic sections.
+		In stratigraphic sections, channel deposits are indicated in black, while floodplain deposition is indicated in white.
+		In the plan-view maps, higher channel visitation is indicated by darker colors, whereas light colors demonstrate that channels rarely visited that location.
+		% From left to right, flooding intensity values are $Q_v = 1.0$, $Q_v = 1.5$, and $Q_v = 3.0$.
+		Visually, it is clear that channels are more abundant in the stratigraphy when $Q_v = 3$, whereas the sections for $Q_v = 1.0$ and $Q_v = 1.5$ are less clear.
+		The abundance of channels in the strata as a function of the radius is quantified in Figure~\ref{fig:grain_size_differences}.
+  }
+	\label{fig:chan_abundance}
+\end{figure}
+
+Moreover, sections taken through the physical deposit also show grain size sorting during different flood regimes.
+Shown in Figure \ref{fig:physical_strat} are sections taken through the deposit at proximal and distal locations for the stages where $Q_v = 1.5$ and $Q_v = 3$.
+Since red sediment is a tracer of coarse material, red coloration in the deposit indicates sand deposition in these photopanels.
+In proximal sections (A and B), coarse material is confined to channels during low-intensity flooding, and distributed to the overbank environment during high-intensity flooding.
+By contrast, in distal sections (C and D), coarse material is preferentially distributed at the shoreline during low-intensity flooding, whereas fine sediment dominates deposition during high-intensity flooding.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{physical_sections_02.pdf}
+	\caption[
+		Physical stratigraphic sections from high- and low-intensity flooding.
+	]{
+    Proximal and distal sections through the experimental delta deposit. Insets show zoomed views of key stratigraphic features, and maps show location of stratigraphic cuts in delta basin.
+    Proximal cuts highlighting the low-intensity flooding interval (A) and high-intensity interval (B) are contrasted with distal cuts from low- (C) and high-intensity (D) flooding intervals.
+  }
+	\label{fig:physical_strat}
+\end{figure}
+
+% \clearpage
+
+Finally, the evenness of sediment deposition was quantified by analyzing the growth of stratigraphic completeness as a function of discretization timescale.
+Extracting preservation data along a circular section of each experimental dataset at a medial distance from the delta apex, the completeness of each location along the section was calculated for a range of $\delta t$ values from the finest discretization possible up to the compensation timescale.
+These data were modeled with Equation~\ref{eqn:f_scaling} using MCMC methods to produce posterior distributions of $\beta$.
+During low-intensity flooding, $\beta$ assumes a maximum value (Figure~\ref{fig:completeness}d), indicating uneven sediment dispersal, and a propensity to favor downstream sediment transport versus lateral sediment dispersal.
+In contrast, $\beta$ assumes a minimum value when $Q_v = 3$, indicating that high-intensity flooding promotes lateral sediment dispersal to evenly cover the delta topset.
+When $Q_v = 1$, $\beta$ assumes an intermediate value, indicating a balance between lateral vs downstream sediment dispersal.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{channel_grain_size.pdf}
+	\caption[
+	Channel and floodplain grain size distributions; distribution in the strata
+	]{
+	Shown in (a) and (b) are grain size distributions from channel and floodplain deposits identified in physical stratigraphic cuts (gray), with an example sample highlighted (red) for each facies.
+	Also shown in black is the grain size distribution of the input sediment mixture.
+	% It is evident that channels concentrate coarse grain sizes, whereas overbank deposits concentrate finer grain sizes.
+	% An example synthetic stratigraphic section with channel (black) and floodplain (white) facies identified show how the abundance of channel deposits is computed in the strata.
+	Shown in (d), (e), and (f) are the abundance of channel deposits in circular sections taken through the synthetic stratigraphy at several radii from the delta apex.
+	All experiments show a general basinward fining, but channel facies are more abundant when $Q_v = 3$, least abundant when $Q_v = 1.5$ and intermediate when $Q_v = 1$
+	}
+	\label{fig:grain_size_differences}
+\end{figure}
+
+<<estimate_sadler_exponents, cache=TRUE>>=
+	re_run_sadler = FALSE
+	if (re_run_sadler) {
+		source(here('analysis', 'chapter_2', 'qvAll_multiR.r'))
+	} else {
+		multiRSadlerJags = read_rds(here('data', 'derived_data', 'sadler_exponent_posteriors.rds'))
+	}
+source(here('analysis', 'chapter_2', 'figures', 'src', 'stratigraphic_completeness.r'))
+# singlelevelSadler = read_rds(here('nonmonotonic_chapter', 'data', 'derived_data', 'qvAll_midR_estimates.rds'))
+sadler_est = multiRSadlerJags$BUGSoutput$mean$mu.beta1 %>% signif(digits = 3)
+sadler_std = multiRSadlerJags$BUGSoutput$sd$mu.beta1 %>% signif(digits = 2)
+@
+
+\begin{figure}[ht!]
+	\includegraphics[height = 7in, draft = false]{strat_completeness_decay.pdf}
+	\caption[
+		Stratigraphic completeness for each level of flooding intensity
+	]{
+		The power-law growth of stratigraphic completeness as a function of discretization timescale is shown for flooding intensity values of $Q_v = 1.0$, $Q_v = 1.5$, and $Q_v = 3.0$.
+		The shaded regions show the distribution of the data binned for every value of $\delta t$, with the lightest band showing the 1st to 99th percentiles, the middle band showing the 10th to 90th percentiles, and the darkest showing the 25th to 75th percentiles.
+		The binned median is shown as a black line.
+		Model fits of Equation~\ref{eqn:f_scaling} are shown in red, with an 80\% credible interval for the model predictions.
+		Estimated posterior distributions for $\beta$ are shown in panel d, where the median is shown as a point, and the 25th to 75th percentiles are shown as a thick line, and the 10th to 90th percentiles shown as a thin line.
+  }
+	\label{fig:completeness}
+\end{figure}
+
+\subsection{Channel and delta floodplain morphology}
+
+<<channel_delta_morphology_qv_gradient, cache=TRUE>>=
+source(here('analysis', 'chapter_2', 'figures', 'src', 'channel_geometry_trends.r'))
+chanWidth_est = 100 * chanDimJags$BUGSoutput$mean$mu.width %>% signif(digits = 3)
+chanWidth_std = 100 * chanDimJags$BUGSoutput$sd$mu.width %>% signif(digits = 3)
+chanDepth_est = 1000 * chanDimJags$BUGSoutput$mean$mu.depth %>% signif(digits = 3)
+chanDepth_std = 1000 * chanDimJags$BUGSoutput$sd$mu.depth %>% signif(digits = 3)
+chanSlope_est = 100 * chanSlopeJags$BUGSoutput$mean$mu.slope %>% signif(digits = 3)
+chanSlope_std = 100 * chanSlopeJags$BUGSoutput$sd$mu.slope %>% signif(digits = 2)
+@
+
+Channel geometry scaled non-monotonically in response to increasing flooding intensity (Figure~\ref{fig:channel_geoms}).
+When no flooding was present, channel slope was
+\Sexpr{100*chanSlopeJags$BUGSoutput$mean$mu.slope[1] %>% signif(digits = 3)}~$\times 10^{-2}$ on average.
+When low-intensity flooding was imposed, channel slopes shallowed substantially to
+\Sexpr{100*chanSlopeJags$BUGSoutput$mean$mu.slope[2] %>% signif(digits = 3)}~$\times 10^{-2}$, but as flooding intensified such that $Q_v = 3$, channel slopes increased substantially to
+\Sexpr{100*chanSlopeJags$BUGSoutput$mean$mu.slope[3] %>% signif(digits = 3)}~$\times 10^{-2}$.
+When no flooding was present, channels were
+\Sexpr{1000*chanDimJags$BUGSoutput$mean$mu.depth[1] %>% signif(digits = 3)}~mm deep on average.
+When low-intensity flooding was imposed, channels deepened to
+\Sexpr{1000*chanDimJags$BUGSoutput$mean$mu.depth[2] %>% signif(digits = 3)}~mm, but as flooding intensified such that $Q_v = 3$, channels shallowed to
+\Sexpr{1000*chanDimJags$BUGSoutput$mean$mu.depth[3] %>% signif(digits = 3)}~mm deep.
+When no flooding was present, channels were
+\Sexpr{100*chanDimJags$BUGSoutput$mean$mu.width[1] %>% signif(digits = 3)}~cm wide on average.
+When low-intensity flooding was imposed, channels narrowed to
+\Sexpr{100*chanDimJags$BUGSoutput$mean$mu.width[2] %>% signif(digits = 3)}~cm wide, but as flooding intensified such that $Q_v = 3$, channels widened to
+\Sexpr{100*chanDimJags$BUGSoutput$mean$mu.width[3] %>% signif(digits = 3)}~cm across (see Table~\ref{tab:nonmonotonic_results_summary}).
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{channel_geoms.pdf}
+	\caption[
+		Channel geometry at each level of flooding intensity
+	]{
+		Channel geometry estimates across a gradient of $Q_v$.
+		Points represent average values, and bars represent the mean ± the standard deviation.
+		Channel widths, depths, and slope all scale non-monotonically with $Q_v$.
+  }
+	\label{fig:channel_geoms}
+\end{figure}
+
+<<delta_floodplain_morphology_qv_gradient, cache=TRUE>>=
+source(here('analysis', 'chapter_2', 'figures', 'src', 'delta_floodplain_rougness_trends.r'))
+roughness_est = (1000 * roughnessJags$BUGSoutput$mean$roughness.mod) %>% signif(digits = 3)
+roughness_std = (1000 * roughnessJags$BUGSoutput$sd$roughness.mod) %>% signif(digits = 3)
+rugosity_est = rugosityJags$BUGSoutput$mean$rugosity.mod %>% signif(digits = 3)
+rugosity_std = rugosityJags$BUGSoutput$sd$rugosity.mod %>% signif(digits = 1)
+FPSlope_est = 100 * FPSlopeJags$BUGSoutput$mean$mu.slope %>% signif(digits = 3)
+FPSlope_std = 100 * FPSlopeJags$BUGSoutput$sd$mu.slope %>% signif(digits = 1)
+@
+
+When no flooding was present, floodplain relief averaged
+\Sexpr{1000*roughnessJags$BUGSoutput$mean$roughness.mod[1] %>% signif(digits = 3)}~mm.
+During low-intensity flooding, enhanced alluvial ridges were observed, with characteristic floodplain relief of
+\Sexpr{1000*roughnessJags$BUGSoutput$mean$roughness.mod[2] %>% signif(digits = 3)}~mm.
+In contrast, floodplain relief was diminished during high-intensity flooding, totaling
+\Sexpr{1000*roughnessJags$BUGSoutput$mean$roughness.mod[3] %>% signif(digits = 3)}~mm.
+Delta lobes at the shore grew with delivery of sediment from the river channels, creating a rugose shoreline.
+When no flooding was present, shoreline rugosity calculated using Equation~\ref{eqn:rugosity}, was \Sexpr{rugosityJags$BUGSoutput$mean$rugosity.mod[1] %>% signif(digits = 3)}.
+When low-intensity flooding was imposed, shoreline rugosity increased to \Sexpr{rugosityJags$BUGSoutput$mean$rugosity.mod[2] %>% signif(digits = 3)}, whereas when flooding intensity increased to $Q_v = 3$, shoreline rugosity decreased to \Sexpr{rugosityJags$BUGSoutput$mean$rugosity.mod[3] %>% signif(digits = 3)}.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{floodplain_roughness.pdf}
+	\caption[
+		Non-monotonic scaling of delta morphology with flooding intensity
+	]{
+		Delta morphology characteristics across a gradient of $Q_v$.
+		Points represent average values, and bars represent the mean ± the standard deviation.
+		Floodplain roughness, shoreline rugosity, and floodplain slope all scale non-monotonically with $Q_v$.
+  }
+	\label{fig:rugosity}
+\end{figure}
+
+\subsection{Levee breach abundance}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{breaches.pdf}
+	\caption[
+		Levee breach abundance as a function of flood intensity
+	]{
+		Counts of levee breaches across a gradient in flooding intensity.
+		Levee breaches were most common during high-intensity flooding.
+		Levee breaches were less abundant during low-intensity flooding as compared to either no flooding or high-intensity flooding.
+		Shown is an example overhead image at low flow, where levee breaches were identified as locations where flow escaped from the channel to the floodplain.
+		The location of levee breaches that annealed is also indicated.
+  }
+	\label{fig:levee_breach_abundance}
+\end{figure}
+
+<<levee_breaches, cache=TRUE>>=
+source(here('analysis', 'chapter_2', 'analyze_breach_data.r'))
+breach_est = breachJags$BUGSoutput$mean$breach.cnt %>% signif(digits = 3)
+breach_sd = breachJags$BUGSoutput$sd$breach.cnt %>% signif(digits = 3)
+@
+
+Counts of levee breaches conducted in each hour of the experiment indicate that levee breaches are less abundant when flood intensity is low ($Q_v = 1.5$) as compared to no flooding or high-intensity flooding.
+As shown in Figure~\ref{fig:levee_breach_abundance}, an average of
+\Sexpr{breach_est[1]} levee breaches were active at any given hour when there was no flooding, and when flooding was intense ($Q_v = 3$), \Sexpr{breach_est[3]} levee breaches were active.
+In contrast, when flood intensity was low, only
+\Sexpr{breach_est[2]} levee breaches were active at any given time.
+These results were analyzed using an ANOVA with Poisson-distributed dispersion, yielding posterior estimates summarized in Table~\ref{tab:nonmonotonic_results_summary}.
+
+\begin{table}[ht!]
+	% \begin{singlespace}
+	\centering
+	\caption[
+		Modeled estimates for observed delta parameters
+	]{
+		Posterior estimates or maximum-likelihood estimates for observed delta parameters.
+		Posterior estimates are given as the mean $\pm$ standard deviation.
+		*Estimates made with maximum-likelihood are given as mean $\pm$ 95\% confidence intervals.
+	}
+	% roughness_est
+	% roughness_std
+	\begin{tabularx}{\textwidth}{lrrr}
+	    % & No Flooding & Low-intensity Flooding & High-Intensity Flooding \\
+	    & $Q_v = 1$ & $Q_v = 1.5$ & $Q_v = 3$ \\
+	\hline
+	\hline
+	Channel Depth (mm)
+		& $\Sexpr{chanDepth_est[1]} \pm \Sexpr{chanDepth_std[1]}$
+		& $\Sexpr{chanDepth_est[2]} \pm \Sexpr{chanDepth_std[2]}$
+		& $\Sexpr{chanDepth_est[3]} \pm \Sexpr{chanDepth_std[3]}$ \\
+	% & $10.5 \pm 0.3$ & $12.5 \pm 0.4$ & $8.9 \pm 0.3$ \\
+	Channel Width (mm)
+		& $\Sexpr{chanWidth_est[1]} \pm \Sexpr{chanWidth_std[1]}$
+		& $\Sexpr{chanWidth_est[2]} \pm \Sexpr{chanWidth_std[2]}$
+		& $\Sexpr{chanWidth_est[3]} \pm \Sexpr{chanWidth_std[3]}$ \\
+	% & $68.1 \pm 1.8$ & $57.9 \pm 2.4$ & $165.1 \pm 5.0$ \\
+	Channel Slope ($m/m\times 10^{-2}$)
+		& $\Sexpr{chanSlope_est[1]} \pm \Sexpr{chanSlope_std[1]}$
+		& $\Sexpr{chanSlope_est[2]} \pm \Sexpr{chanSlope_std[2]}$
+		& $\Sexpr{chanSlope_est[3]} \pm \Sexpr{chanSlope_std[3]}$ \\
+	% & $2.65 \pm 0.02$ & $1.83 \pm 0.01$ & $2.70 \pm 0.01$ \\
+	\hline
+	Shoreline Rugosity (---)
+		& $\Sexpr{rugosity_est[1]} \pm \Sexpr{rugosity_std[1]}$
+		& $\Sexpr{rugosity_est[2]} \pm \Sexpr{rugosity_std[2]}$
+		& $\Sexpr{rugosity_est[3]} \pm \Sexpr{rugosity_std[3]}$ \\
+	Delta Topset Roughness (mm)
+		& $\Sexpr{roughness_est[1]} \pm \Sexpr{roughness_std[1]}$
+		& $\Sexpr{roughness_est[2]} \pm \Sexpr{roughness_std[2]}$
+		& $\Sexpr{roughness_est[3]} \pm \Sexpr{roughness_std[3]}$ \\
+	Delta Topset Slope ($m/m\times 10^{-2}$)
+		& $\Sexpr{FPSlope_est[1]} \pm \Sexpr{FPSlope_std[1]}$
+		& $\Sexpr{FPSlope_est[2]} \pm \Sexpr{FPSlope_std[2]}$
+		& $\Sexpr{FPSlope_est[3]} \pm \Sexpr{FPSlope_std[3]}$ \\
+	\hline
+	Sediment Dispersal ($\beta$)
+		& $\Sexpr{sadler_est[1]} \pm \Sexpr{sadler_std[1]}$
+		& $\Sexpr{sadler_est[2]} \pm \Sexpr{sadler_std[2]}$
+		& $\Sexpr{sadler_est[3]} \pm \Sexpr{sadler_std[3]}$ \\
+	% & $0.455 \pm 0.019$ & $0.521 \pm 0.019$ & $0.423 \pm 0.013$ \\
+	Channel Mobility (hrs)*
+		& $\Sexpr{qv_10_efolding} \pm \Sexpr{qv_10_efolding_std}$
+		& $\Sexpr{qv_15_efolding} \pm \Sexpr{qv_15_efolding_std}$
+		& $\Sexpr{qv_30_efolding} \pm \Sexpr{qv_30_efolding_std}$ \\
+	% & $19.8 \pm 1.44$ & $23.9 \pm 2.24$ & $4.6 \pm 0.24$ \\
+	\hline
+	Levee Breaches
+		& $\Sexpr{breach_est[1]} \pm \Sexpr{breach_sd[1]}$
+		& $\Sexpr{breach_est[2]} \pm \Sexpr{breach_sd[2]}$
+		& $\Sexpr{breach_est[3]} \pm \Sexpr{breach_sd[3]}$ \\
+	\hline
+	\end{tabularx}
+	\label{tab:nonmonotonic_results_summary}
+% \end{singlespace}
+\end{table}
+
+\section{Floods and basin-scale morphodynamics}
+
+% \subsection{Channel Mobility}
+% Sediment either forms bars that redirect flow to erode the bankline, or .
+% avulsion and channel relocation.
+% Overbank flow often focuses in levee breaches, and over time, can build a crevasse.
+% Crevasses sometimes escalate to become avulsions, after which the river takes a new path.
+
+In this experimental apparatus, the main mechanism driving lateral channel mobility is avulsion.
+Visual observations from overhead imagery show that avulsions occurred in the experiments when channel banklines failed and subsequent erosion scoured a permanent crevasse splay, allowing water and sediment to flow onto the floodplain through the breach (Figure~\ref{fig:levee_breach_abundance}).
+Overbank flow is the result of sediment that accumulates in the channel and elevates the water stage above the levee crest.
+Thus, the key control on avulsion is the balance between in-channel aggradation, which destabilizes the channel by increasing the probability of crevasses, and the propensity to build levees, which confine the flow and preclude avulsions.
+
+Flooding intensity impacted both of these processes, and is shown in Figure~\ref{fig:channel_evolution}, where the process of channel evolution is illustrated for two contrasting scenarios, namely $Q_v = 1.5$ and $Q_v = 3$.
+When flooding intensity is low, in-channel aggradation is balanced by levee aggradation (Figure~\ref{fig:channel_evolution}; $A$---$A'$), which confines the flow and precludes avulsions, such that over the $1/2T_c$ depicted in the figure, the channel under low-intensity flooding was stationary.
+In contrast, rapid in-channel aggradation under high-intensity flooding outpaces levee aggradation (Figure~\ref{fig:channel_evolution}; $B$---$B'$).
+This destabilized the channel and promoted a subsequent avulsion, which relocated flow to river right (Figure~\ref{fig:channel_evolution}; $B$---$B'$).
+This example serves to show a general result, which is that levee breaches were less abundant under low-intensity flooding, because sediment accreted to form levees and anneal breaches.
+When flooding was intense or absent, breaches became more common (Figure~\ref{fig:levee_breach_abundance}).
+It is this balance that drives impacts on channel mobility, delta sediment dispersal patterns, as well as channel geometries as a result of changing flood intensity.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width = \textwidth, draft = false]{channel_evolution.pdf}
+	\caption[
+		Mechanics of channel evolution under low- and high-intensity flooding
+	]{
+		Topographic maps of two example stratigraphic surfaces are shown in (a) and (b), with transects marked $A$---$A'$ and $B$---$B'$.
+		Transects are shown in the corresponding lower panels.
+		Shown in gray lines are successive stratigraphic surfaces, demonstrating sediment deposition patterns.
+		Darker surfaces are younger, and lighter surfaces are older.
+		Note that in transect $A$---$A'$, initial channel scouring is followed by subsequent in-channel aggradation, which would lead to avulsion except for the fact that levee aggradation confines the channel, and restricts it to one location.
+		In contrast, transect $B$---$B'$ shows initial levee aggradation, but levee development does not continue, and in-channel aggradation forces an avulsion to river right.
+  }
+	\label{fig:channel_evolution}
+\end{figure}
+
+Channel overlap $e$-folding times (Figure~\ref{fig:efolding}) show clearly that extreme flooding ($Q_v = 3$) promotes enhanced channel mobility, in keeping with existing evidence that flooding increases bank erosion, promoting avulsion and inhibiting levee growth \cite{esposito_sediment_2018}.
+Levee breaches are the nuclei for incipient avulsions, and elevated flood stages and flow velocities during peak flood conditions promoted bank erosion and scour that facilitated the avulsion process.
+This effect was paired with in-channel aggradation during interflood periods that primed overbank flows in the subsequent flood cycles (Figure~\ref{fig:channel_evolution}).
+Combined, these processes promoted frequent avulsions, and intensified channel mobility, dispersing coarse material across the proximal delta.
+
+In contrast, our results indicate that moderate levels of flooding ($Q_v = 1.5$) inhibited channel mobility.
+Whereas high-intensity floods appear to limit the development of long-lived levees, low-intensity flooding clearly promotes long-term levee construction (Figure~\ref{fig:package_evenness}).
+Moderate floods ensured that fine sediment was delivered to channel margins during overbank conditions, and waning overbank flow velocity on the falling limb resulted in sediment deposition adjacent to the channel margin (Figure~\ref{fig:channel_evolution}).
+% The locally-deposited sediment can contribute to S
+Sediment supplied to channel margins thus contributed to channel confinement, by annealing levee breaches and forestalling incipient avulsions (Figure~\ref{fig:levee_breach_abundance}).
+However, when flow is steady ($Q_v = 1$), levee breaches are subjected to continuous overbank flow with no rising or falling limb, thus reducing the probability breaches will silt and anneal.
+In this way, moderate flooding stabilizes levees, and in so doing, limits channel mobility relative to both the high-intensity flooding and the no flooding condition, producing a non-monotonic scaling relationship (Figures~\ref{fig:efolding}).
+
+Levee breaching also impacts the extent of inundation and sediment dispersal across the delta topset, thereby affecting accumulation patterns.
+The evidence indicates that across a gradient of flooding intensities, sediment dispersal patterns exhibit non-monotonic behavior, just as with channel mobility.
+When no flooding is present ($Q_v = 1$), fluvial morphologies and kinematics equilibrate to time-averaged sediment flux and aggradation conditions.
+An incremental increase in flood amplitude to $Q_v = 1.5$ stabilized channels and confined flow, which restricted floodplain sediment deposition to the area immediately adjacent to the channel.
+Thus, moderate flooding focused sediment transport downstream to the channel mouth, which prograded delta lobes and led to uneven sediment package thickness and a rugose shoreline (Figure~\ref{fig:package_evenness}).
+A further increase in flood amplitude to $Q_v = 3$, however, produced the opposite response.
+By driving frequent avulsions through levee breaches, high-intensity flooding resulted in extensive lateral sediment dispersal.
+Sediment packages in the high-intensity flooding experiment were evenly distributed across the delta topset, in contrast to both the no-flooding condition as well as the low-intensity flood condition (Figures~\ref{fig:package_evenness} and~\ref{fig:completeness}).
+
+The non-monotonic style of fluvial sediment dispersal impacted floodplain topography and channel geometry.
+During high-intensity flooding, frequent avulsions evenly spread sediment across the delta topset, which resulted in muted floodplain roughness (Figure~\ref{fig:rugosity}).
+Furthermore, because channels were short-lived due to the frequency of avulsions, basinward progradation of delta lobes was inhibited, and shoreline rugosity was diminished (Figure~\ref{fig:rugosity}).
+In contrast, during low-intensity flooding, stable channels limited lateral sediment dispersal, and focused deposition adjacent to the channel, thus accentuating floodplain roughness (Figures~\ref{fig:package_evenness} and~\ref{fig:completeness}).
+With restricted mobility, channels under low-intensity flooding acted as conduits to transport sediment to the shoreline, promoting lobe progradation and enhanced shoreline rugosity (Figure~\ref{fig:rugosity}).
+Levee-building processes are also reflected in channel geometries, which display non-monotonic scaling with flood intensity (Figure~\ref{fig:channel_geoms}).
+Enhanced erosion of levees and frequent avulsion during high-intensity flooding leads to the formation of broad, shallow channels.
+Sustained levee aggradation during low-intensity flooding produces relatively deep, narrow channels.
+Intermediate levee-building under constant flow thus resulted in channels of intermediate dimensions (Figure~\ref{fig:channel_geoms}).
+Taken together, these results suggest that the propensity of levee breaches to either anneal or escalate into avulsion is an important but overlooked aspect of fluvial morphodynamics that fundamentally changes predictions of landscape evolution under variable flow.
+
+Extending these results from the laboratory to field scale systems requires care.
+In these experiments, levee aggradation is the key process, but in natural rivers, many processes influence the exchange of sediment and water between channels and the adjacent floodplains \cite{mertes_spatial_1995, adams_variations_2004, lewin_spillage_2017}.
+Instead of considering the direct processes of levee construction, which is still poorly understood at the field scale \cite{johnston_connecting_2019}, we propose a framework that considers a balance between processes that \textit{nourish} the channel margin with sediment versus processes that \textit{deplete} the channel margin of sediment.
+Many natural river systems, like the Saskatchewan River (Saskatchewan, Canada) receive channel bank deposition by advection, where lateral head gradients drive flow transverse to the channel, building wide, low levees \cite{adams_variations_2004}.
+In this case, it is likely that an incremental increase in flood intensity will enhance lateral advection of sediment, eroding levee crests and depleting the channel margins of sediment, similar to our results comparing $Q_v = 1.5$ and $Q_v = 3$.
+
+In contrast, on reaches of the Columbia River (BC, Canada), also studied by \citeA{adams_variations_2004}, levee construction is dominated by diffusive transport.
+Sediment is confined near the river channel, constructing relatively narrow levees.
+In this scenario, an incremental increase in flood intensity could promote more advective transport to the channel margins, nourishing the banks with additional sediment.
+While the effect of $Q_v$ on patterns of channel bank nourishment has not been studied in the field, we suspect that natural systems fall along a similar gradient as our experiments.
+To identify this effect in the field though, it will be necessary to control for differences in vegetation, sediment texture, geologic history, land use, and local hydrology, among others.
+
+\section{Flooding in the stratigraphic record}
+
+When attempting to infer alluvial dynamics from the geologic record, the distinction between channel deposits and overbank deposits, their relative abundance and spatial relationships form the crux of the process interpretation.
+These deposits are most clearly recognized by changes in grain size.
+For example, variation in the abundance of coarse versus fine grains have been interpreted to reflect changes in boundary conditions like enhanced mountain uplift or changes in base level \cite<e.g.>{heller_large-scale_1992}.
+Our results show conclusively that grain-size variation can occur simply because of a change in flood intensity (Figure \ref{fig:physical_strat}), whereby grain sizes are sorted and partitioned both laterally and longitudinally by different intensities of overbank flow.
+However, the expression of a given stratigraphic exposure may have several plausible root causes, and so detailed observations of sedimentary structures are needed to distinguish between them.
+
+Various metrics and facies associations have been proposed as diagnostic of alluvial systems experiencing extreme floods \cite<e.g.>{plink-bjorklund_morphodynamics_2015}, but in general, the specific mechanisms by which changes in flood intensity are expressed in the strata have remained underconstrained.
+This study: (1) identifies levee-building as a definitive mechanism governing the spatial allocation of grain sizes and sediment in fluvio-deltaic systems undergoing variable flow, and (2) demonstrates that this mechanism is responsible for non-monotonic dynamics across a gradient in flooding intensity.
+Thus, stratigraphic interpretations of flooding intensity from field outcrops should target levee deposits as the main focus for inferring the level of flooding intensity.
+
+Moreover, the non-monotonic behavior suggests that changes in flooding may manifest differently depending on whether the current level of flooding is above or below the optimum for levee construction.
+For example, prior to the Paleocene-Eocene Thermal Maximum (PETM, $\sim$55.6 Ma, \cite{kennett_abrupt_1991}), rivers in the Piceance Basin (Colorado, USA) were likely characterized by low-intensity flooding.
+However, during the PETM, enhanced flooding destabilized Piceance rivers, by driving overbank flow and crevassing \cite{foreman_fluvial_2012}.
+This likely indicates that enhanced flooding during the PETM pushed flood intensity beyond the optimum condition for levee construction in the Piceance floodplain.
+However, another basin may have a different response.
+For example, if intensified flooding in another basin brought the system state closer to its optimum levee condition, channels may have stabilized.
+
+This aspect of the response is also relevant for projections of future climate change.
+Changes in precipitation due to global warming are expected to result in enhanced flooding in some regions and diminished flooding in others.
+This study suggests that the fluvial response will depend on the system state relative to the levee-building optimum.
+In regions where the flood intensity is below the optimum level for levee construction, enhanced flooding may cause future channel stabilization.
+On the other hand, a counterintuitive implication is that if flood intensity in a region is at or below its optimum for levee-building, a decrease in flood intensity may, in fact, destabilize channels.
+
+\section{Conclusions}
+
+Variable flow is a natural condition for all river channels, yet its impacts on fluvial morphodynamics are difficult to predict.
+This study evaluated the impact of flooding intensity on fluvial dynamics using a set of three physical experiments that spanned a gradient of flood intensity ($Q_v$).
+In each experiment, the time-averaged sediment and water flux were held constant while channel mobility, sediment dispersal, and landscape morphology were observed.
+
+When no flooding was present ($Q_v = 1$), channels were flanked by discontinuous levees, which restricted channel mobility and produced a characteristic width and depth.
+Levee breaches, crevassing and avulsion events were the primary mechanisms to deliver sediment to the floodplain, building delta lobes and producing a rugose shoreline.
+
+When low-amplitude floods ($Q_v = 1.5$) were imposed, sediment was consistently delivered to levee crests with every flood cycle.
+As a result, levee breaches tended to anneal over successive flood waves, and channels deepened and narrowed, while cohesive channel banks severely decreased channel mobility.
+Tall levees confined flow and restricted the locus of deposition to areas immediately adjacent to the channel margin and lobes at the delta shoreline.
+The outcome of this was to enhance shoreline rugosity, lower channel slopes, and construct substantial floodplain relief.
+
+However, when flood amplitude increased to $Q_v = 3$, vigorous overbank flow advected sediment beyond channel margins, exacerbating existing levee breaches, and shortening the avulsion frequency.
+This process inhibited levee aggradation and promoted enhanced bank erosion, which created wide, shallow channels characterized by rapid planform mobility.
+Low channel margins primed the system for substantial overbank flow, and promoted lateral sediment dispersal across the delta topset.
+Floodplain relief decreased as a result of even sediment deposition, and enhanced channel mobility precluded the development of long delta lobes.
+Combined, these processes produced higher channel slopes and lower shoreline rugosity.
+
+Taken together, these observations of fluvio-deltaic morphologies and kinematics show that surface processes and sediment dispersal scale non-monotonically across a gradient of flooding intensities.
+Flooding induces a morphodynamic feedback in the fluvial system, where flood amplitude determines the inundation extent, thereby altering erosion and deposition patterns and shaping fluvio-deltaic morphology, which in turn impacts overbank flow.
+Levees are the lynchpin of this feedback, governing sediment exchange between channels and adjacent floodplains.
+Below a threshold of flood amplitude, marginal increases in flood intensity stabilized levees, whereas above the threshold, a marginal increase in flooding intensity destabilized levees.
+Our results demonstrate that deviation from the optimum levee construction condition induces a cascade of impacts on fluvial dynamics across scales.
+Importantly, since each experiment was run with the same equivalent steady discharge, these results suggest that in fan deltas with variable flow, levee construction processes are required to accurately predict landscape evolution and interpret fluvio-deltaic stratigraphy.
+
+\acknowledgments
+Eric Barefoot would like to thank Robert Mahon for his hospitality while conducting these experiments, and to Ripul Dutt for assistance and training.
+Data products and software necessary for recreating this study are available in a Zenodo repository (DOI: ), and Github repository (DOI: ), respectively.
+Eric Barefoot acknowledges support from a Pathfinder Fellowship provided by CUAHSI with support from the National Science Foundation (NSF) Cooperative Agreement No. EAR-1849458.
+Eric Barefoot additionally acknowledges support from SEPM via a Student Assistance Grant.
+
+\bibliography{flood_regime_experiments}
+
+\end{document}

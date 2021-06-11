@@ -1,2 +1,6 @@
-# nonmonotonic_fluvial_response
-Contains code, and manuscript files for replicating a study on the fluvial response to changes in flooding intensity.
+# Non-monotonic floodplain responses to changes in flooding intensity
+
+## Abstract
+Overbank flooding is a ubiquitous condition in natural rivers that modifies floodplain sediment dispersal and impacts channel mobility. While variable discharge is a critical component driving these processes, fluvial landscape evolution is typically modeled by simplifying the hydrograph to an equivalent steady discharge; namely, the channel-forming discharge. In this framework, changes in the hydrograph only affect landscape evolution if they modify the channel-forming discharge, but different formulations for the channel-forming discharge can generate a range of predictions from the same input hydrograph. Here, we investigate how hydrographs with different flood intensities affect channel mobility, sediment accumulation patterns, and alluvial morphology using a suite of physical experiments where a fan delta grew by dispersing a cohesive sediment mixture into a basin. Flood intensity ($Q_v$) was defined as the ratio of the maximum discharge to the minimum discharge, i.e. $Q_v = Q_{max} / Q_{min}$. The experiments spanned three levels: no flooding, low-intensity flooding, and high-intensity flooding, while the time-averaged discharge was equivalent between all flooding regimes.
+
+This repository contains code, and manuscript files for replicating the analyses in this study, and also contains necessary small data files, and two necessary data files. The main data file that forms the basis of this project is available at a separate Zenodo repository, (DOI: 10.5281/zenodo.4928815)
